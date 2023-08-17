@@ -1,0 +1,82 @@
+{
+    "variables": {
+        "ami_name": "ubuntu_base",
+        "creation_time": "{{isotime `20060102-150405`}}",
+        "instance_type": "t2.micro",
+        "profile": "my-profile"
+    },
+    "builders": [
+        {
+          "ami_name": "{{user `ami_name`}}-{{user `creation_time`}}",
+          "associate_public_ip_address": true,
+          "instance_type": "{{user `instance_type`}}",
+          "profile": "{{user `profile`}}",
+          "region": "us-east-2",
+          "source_ami_filter": {
+            "filters": {
+            "virtualization-type": "hvm",
+            "name": "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*",
+            "root-device-type": "ebs"
+            },
+            "owners": ["099720109477"],
+            "most_recent": true
+         },
+         "ssh_username": "ubuntu",
+         "type": "amazon-ebs"
+        }],
+    "provisioners": [
+        {
+            "inline": [
+                "sleep 60",
+                "echo \"Waiting for cloud-init to complete\"",
+                "cloud-init status --wait"
+             ],
+             "type": "shell"
+          },
+          {
+            "source": "puppet6-release-focal.deb",
+            "destination": "/home/ubuntu/puppet6-release-focal.deb",
+            "type": "file"
+          },
+          {
+            "source": "puppet/",
+            "destination": "/tmp",
+            "type": "file"
+          },
+          {
+            "inline": [
+              "mkdir -p /var/tmp/cib-puppet",
+              "sudo -E dpkg -i /home/ubuntu/puppet6-release-focal.deb",
+              "sudo -E echo 'deb https://deb.gremlin.com/ release non-free' | sudo tee  /etc/apt/sources.list.d/gremlin.list",
+              "sudo wget -qO - https://ose-repo.syslog-ng.com/apt/syslog-ng-ose-pub.asc | sudo APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add -",
+              "sudo -E APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9CDB294B29A5B1E2E00C24C022E8EF3461A50EF6",
+              "sudo DEBIAN_FRONTEND=noninteractive apt-get -y update",
+              "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install --only-upgrade --allow-unauthenticated puppet",
+              "sudo DEBIAN_FRONTEND=noninteractive apt-get -y update",
+              "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install --allow-unauthenticated puppet-agent",
+              "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install --allow-unauthenticated python3-requests",
+              "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install python3-pip",
+              "sudo chmod -R 755 /etc/puppetlabs/code/modules/",
+              "sudo ln -s /opt/puppetlabs/bin/puppet /usr/local/bin/puppet || true",
+              "sudo pip3 install --upgrade pip",
+              "sudo pip3 install setuptools",
+              "sudo mkdir -p /tmp/cfn-helper-scripts/aws-cfn-bootstrap-latest",
+              "sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz",
+              "sudo snap refresh amazon-ssm-agent",
+              "sudo -E puppet module install --version 1.2.5  puppetlabs/concat",
+            "sudo -E puppet module install --version 4.0.0 --target-dir /var/tmp/cib-puppet puppetlabs/ntp",
+            "sudo -E puppet module install --version 0.0.1 --target-dir /var/tmp/cib-puppet gdsoperations/updatemotd",
+            "sudo -E puppet module install --version 7.2.0 --target-dir /var/tmp/cib-puppet puppetlabs/apt"
+            ],
+            "type": "shell"
+          },
+          {
+            "execute_command": "{{.FacterVars}}{{if .Sudo}} sudo -E {{end}}puppet apply --verbose --detailed-exitcodes --modulepath='/etc/puppet/modules:/etc/puppetlabs/code/modules:/etc/puppetlabs/code/environments/production/modules:/var/tmp/cib-puppet:{{.ModulePath}}' {{.ManifestFile}}",
+            "manifest_file": "puppet/manifests/site.pp",
+            "type": "puppet-masterless",
+            "module_paths": [
+               "puppet/modules"
+            ]
+         }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "tehmasp-aws_cli",
+  "version": "1.0.1",
+  "source": "https://github.com/tehmaspc/puppet-aws-cli",
+  "author": "tehmasp@gmail.com",
+  "license": "Apache 2.0",
+  "summary": "Installs aws-cli",
+  "description": "Installs aws-cli",
+  "project_page": "https://github.com/tehmaspc/puppet-aws-cli",
+  "dependencies": [
+
+  ],
+  "types": [
+
+  ],
+  "checksums": {
+    "Gemfile": "f6b63659aa9f7f3158db3b5a022c3bcd",
+    "Gemfile.lock": "24500744d0e8469476d5bbef052fa2ec",
+    "LICENSE": "e1cb2e4ac1c6e610150303d4e8d01d02",
+    "ModuleFile": "957f225e48cbde521bbe6bfb068625a3",
+    "README.md": "4ae82d348ed01380eaa875d60df36818",
+    "Rakefile": "05b59d71d4dcaa09d3cda0e2fa1b23b6",
+    "Vagrantfile": "b40e8b74ce3d4be43244434316a4f887",
+    "manifests/init.pp": "c9f4505abfa50b23228638a167542551",
+    "serverspec/spec/aws_cli_spec.rb": "10d31177bd30b8b104c0ccd1d407a44e",
+    "serverspec/spec_helper.rb": "5e92c6b3b0f405b8d46d0f0abe396b65",
+    "spec/classes/aws_cli_spec.rb": "ba302656f3d90c603cd7122f091fabe2",
+    "spec/fixtures/manifests/site.pp": "d41d8cd98f00b204e9800998ecf8427e",
+    "spec/spec_helper.rb": "172362904c9d52074db1becb2bbce8ec"
+  }
+}
